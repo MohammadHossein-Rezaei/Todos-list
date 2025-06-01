@@ -11,7 +11,7 @@ export const TodoList = ({ todos, onToggle, onDelete }: TodoListProps) => {
   return (
     <div>
       {todos.length === 0 ? (
-        <p className="text-gray-500">!</p>
+        <p className="text-gray-500">no tasks yet</p>
       ) : (
         todos.map((todo) => (
           <TodoItem
