@@ -5,3 +5,4 @@ export interface ITodo {
   completed: boolean;
   deadline?: string;
 }
+export type FilterType = "all" | "completed" | "active";

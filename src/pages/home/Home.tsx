@@ -1,24 +1,44 @@
 import { useState, useEffect } from "react";
-import type { ITodo } from "../../types/Todo";
+import type { FilterType, ITodo } from "../../types/Todo";
 import { getTodos, saveTodos } from "../../utils/storage";
 import { AddTodoForm } from "../../components/addTodoForm/AddTodoForm";
 import { TodoList } from "../../components/todolist/TodoList";
 import { motion } from "framer-motion";
 import { SearchBar } from "../../components/searchBar/SearchBar";
+import { FilterButtons } from "../../components/filterButton/FilterButtons";
 const Home = () => {
   const [todos, setTodos] = useState<ITodo[]>(getTodos());
-  const [filteredTodos, setFiltered] = useState<ITodo[]>(todos);
+  const [filteredTodos, setFiltered] = useState<ITodo[]>(getTodos());
+  const [currentFilter, setCurrentFilter] = useState<FilterType>("all");
+  const getFilteredTodos = () => {
+    switch (currentFilter) {
+      case "completed":
+        return todos.filter((todo) => todo.completed);
+      case "active":
+        return todos.filter((todo) => !todo.completed);
+      default:
+        return todos;
+    }
+  };
   useEffect(() => {
     saveTodos(todos);
+    setFiltered(todos);
   }, [todos]);
   const handleSearch = (query: string) => {
-    const filtered = todos.filter((todo) => {
-      todo.title.toLowerCase().includes(query.toLowerCase()) ||
+    if (!query.trim()) {
+      setFiltered(todos);
+      return;
+    }
+
+    const filtered = todos.filter(
+      (todo) =>
+        todo.title.toLowerCase().includes(query.toLowerCase()) ||
         (todo.description &&
-          todo.description.toLowerCase().includes(query.toLowerCase()));
-    });
+          todo.description.toLowerCase().includes(query.toLowerCase()))
+    );
     setFiltered(filtered);
   };
+
   const addTodo = (newTodo: ITodo) => {
     setTodos([...todos, newTodo]);
     setFiltered(todos);
@@ -59,10 +79,12 @@ const Home = () => {
                 Your Tasks
               </h2>
               <div className="text-sm text-[#f4c095]">
-                <SearchBar onSearch={handleSearch} />
+                {filteredTodos.filter((t) => !t.completed).length} pending
               </div>
             </div>
 
+            <SearchBar onSearch={handleSearch} />
+            <FilterButtons onChange={setCurrentFilter} />
             <div className="space-y-3">
               {filteredTodos.length === 0 ? (
                 <div className="text-center py-10 text-gray-400">
@@ -72,7 +94,7 @@ const Home = () => {
                 </div>
               ) : (
                 <TodoList
-                  todos={todos}
+                  todos={getFilteredTodos()}
                   onToggle={toggleTodo}
                   onDelete={deleteTodo}
                 />
